@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Dashboard from "./pages/Dashboard";
 import UserList from "./pages/UsersList";
 import './index.css';
-import Sidebar from './components/Sidebar';
-import Footer from './components/Footer';
-import Header from './components/Header';
+import Sidebar from './components/common/Sidebar';
+import Footer from './components/common/Footer';
+import Header from './components/common/Header';
 import UserProfile from './pages/UserProfile';
 import Dating from './pages/Dating';
 import NotDating from './pages/NotDating';
@@ -14,7 +14,13 @@ import ManageFeed from './pages/ManageFeed';
 import Settings from './pages/Settings';
 import Help from './pages/Help';
 import AdminProfile from './pages/AdminProfile';
-
+import ContestDashboard from './pages/ContestDashboard/Contest';
+import ContestManagement from './pages/ContestDashboard/ContestManagement';
+import CreateContestForm from './pages/ContestDashboard/CreateContestForm';
+import SubmissionsManagement from './pages/ContestDashboard/SubmissionsManagement';
+import Votes from './pages/ContestDashboard/Votes';
+import Report from './pages/ContestDashboard/Report';
+import  Notification from './pages/Notification';
 
 
 
@@ -40,6 +46,15 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/help" element={<Help />} />
               <Route path="/admin-profile" element={<AdminProfile />} />
+              <Route path="/notification" element={<Notification/>} />
+              <Route path="/create-contest" element={<ContestDashboard />} />
+              <Route path="/contest/contest-management" element={<ContestManagement />} />
+              <Route path="/contest/create-contest-form" element={<CreateContestForm />} />
+              <Route path="/contest/submissions-management" element={<SubmissionsManagement />} />
+              <Route path="/contest/votes" element={<Votes />} />
+              <Route path="/contest/reports" element={<Report />} />
+
+
 
 
             </Routes>

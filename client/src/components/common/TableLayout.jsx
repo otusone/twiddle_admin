@@ -4,7 +4,7 @@ export default function TableLayout({ title, headers, data, renderRow }) {
   return (
     <div className="p-4 bg-white shadow-md rounded-xl overflow-x-auto">
       {title && (
-        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FA457E] to-[#7B49FF] mb-8">
+        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-tr from-[#FA457E] to-[#7B49FF] mb-8">
           {title}
         </h1>
       )}

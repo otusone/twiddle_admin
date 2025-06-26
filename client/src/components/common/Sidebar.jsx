@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
 import { FaUser, FaUsers, FaCog, FaQuestionCircle, FaSignOutAlt, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { MdOutlineForum } from "react-icons/md";
 import { RiGroup2Line } from "react-icons/ri";
@@ -32,7 +32,7 @@ export default function Sidebar() {
                     <li
                         onClick={() => navigate("/dashboard")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/dashboard"
+                        ${location.pathname === "/dashboard"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
@@ -43,66 +43,66 @@ export default function Sidebar() {
                     <li
                         onClick={() => navigate("/users")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/users"
+                        ${location.pathname === "/users"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
-                        <FaUser  size={18} />
+                        <FaUser size={18} />
                         {!collapsed && <span>Users</span>}
                     </li>
 
                     <li
                         onClick={() => navigate("/dating")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/dating"
+                        ${location.pathname === "/dating"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
-                        <FaUsers  size={18} />
+                        <FaUsers size={18} />
                         {!collapsed && <span>Dating</span>}
                     </li>
 
                     <li
                         onClick={() => navigate("/not-for-dating")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/not-for-dating"
+                        ${location.pathname === "/not-for-dating"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
-                        <RiGroup2Line  size={18} />
+                        <RiGroup2Line size={18} />
                         {!collapsed && <span>Not for Dating </span>}
                     </li>
 
                     <li
                         onClick={() => navigate("/common-users")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/common-users"
+                        ${location.pathname === "/common-users"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
-                        <RiGroup2Line  size={18} />
+                        <RiGroup2Line size={18} />
                         {!collapsed && <span>Common Users</span>}
                     </li>
 
                     <li
                         onClick={() => navigate("/manage-feed")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/manage-feed"
+                        ${location.pathname === "/manage-feed"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
-                        <MdOutlineForum   size={20} />
+                        <MdOutlineForum size={20} />
                         {!collapsed && <span>Manage Feeds</span>}
                     </li>
 
                     <li
                         onClick={() => navigate("/create-contest")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/create-contest"
+                        ${location.pathname === "/create-contest"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
-                        <IoIosAddCircleOutline  size={20} />
+                        <IoIosAddCircleOutline size={20} />
                         {!collapsed && <span>Create Contest</span>}
                     </li>
 
@@ -118,22 +118,22 @@ export default function Sidebar() {
                     <li
                         onClick={() => navigate("/settings")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/settings"
+                        ${location.pathname === "/settings"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
-                        <FaCog  size={18} />
+                        <FaCog size={18} />
                         {!collapsed && <span>Settings</span>}
                     </li>
 
                     <li
                         onClick={() => navigate("/help")}
                         className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
-    ${location.pathname === "/help"
+                        ${location.pathname === "/help"
                                 ? "bg-blue-100 text-blue-800"
                                 : "text-gray-700 hover:bg-blue-50"}`}
                     >
-                        <FaQuestionCircle  size={18} />
+                        <FaQuestionCircle size={18} />
                         {!collapsed && <span>Help</span>}
                     </li>
 

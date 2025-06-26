@@ -37,12 +37,12 @@ export default function Settings() {
 
   return (
     <div className="p-6 bg-white rounded shadow">
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 3 }}>
+      
+      <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-tr from-[#FA457E] to-[#7B49FF] mb-8">
         Admin Settings
-      </Typography>
-
+      </h1>
       <Grid container spacing={6}>
-        {/* General Settings */}
+        
         <Grid item xs={12} md={6}>
           <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
             General
@@ -63,7 +63,7 @@ export default function Settings() {
           />
         </Grid>
 
-        {/* User Preferences */}
+        
         <Grid item xs={12} md={6}>
           <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
             User Preferences
@@ -125,15 +125,17 @@ export default function Settings() {
           <br></br>
 
           <Grid item xs={12} md={6}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSave}
-            sx={{ mt: 4 }}
-          >
-            Save Settings
-          </Button>
-        </Grid>
+            <Button
+              variant="contained"
+              // color="primary"
+              onClick={handleSave}
+              sx={{ mt: 4 }}
+            className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white px-4 py-2 rounded-lg hover:shadow-md"
+
+            >
+              Save Settings
+            </Button>
+          </Grid>
         </Grid>
 
         {/* Subscription */}
