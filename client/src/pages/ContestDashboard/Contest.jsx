@@ -107,8 +107,6 @@ const ContestDashboard = () => {
         </ul>
       </div>
 
-
-
       <div className="fixed bottom-12 min-w-[77vw] bg-blue-100 shadow-md border-t border-gray-200 z-50 p-3 flex flex-wrap gap-4 mx-4">
         <button onClick={() => navigate("/contest/submissions-management")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 px-3 rounded-lg hover:shadow-md">
           Submissions Management
