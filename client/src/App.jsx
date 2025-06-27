@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import UserList from "./pages/UsersList";
 import './index.css';
@@ -20,53 +20,59 @@ import CreateContestForm from './pages/ContestDashboard/CreateContestForm';
 import SubmissionsManagement from './pages/ContestDashboard/SubmissionsManagement';
 import Votes from './pages/ContestDashboard/Votes';
 import Report from './pages/ContestDashboard/Report';
-import  Notification from './pages/Notification';
-import  ContestDetails from './pages/ContestDashboard/ContestDetails';
+import Notification from './pages/Notification';
+import ContestDetails from './pages/ContestDashboard/ContestDetails';
+import Login from './pages/Login';
 
 
+function LayoutWrapper({ children }) {
+  const location = useLocation();
 
+ 
+  if (location.pathname === "/login") {
+    return children;
+  }
 
-
+  return (
+    <div className="app-container relative flex">
+      <Sidebar />
+      <div className="main-content flex-1">
+        <Header />
+        <main className="dashboard-area overflow-y-auto scrollbar-hide p-4">
+          {children}
+        </main>
+        <Footer />
+      </div>
+    </div>
+  );
+}
 
 function App() {
   return (
-    
-      <div className="app-container relative flex">
-        <Sidebar />
-        <div className="main-content flex-1">
-          <Header />
-          <main className="dashboard-area overflow-y-auto scrollbar-hide p-4">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/users" element={<UserList />} />
-              <Route path="/usersProfile" element={<UserProfile />} />
-              <Route path="/dating" element={<Dating />} />
-              <Route path="/not-for-dating" element={<NotDating />} />
-              <Route path="/common-users" element={<CommonUsers />} />
-              <Route path="/manage-feed" element={<ManageFeed />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/help" element={<Help />} />
-              <Route path="/admin-profile" element={<AdminProfile />} />
-              <Route path="/notification" element={<Notification/>} />
-              <Route path="/create-contest" element={<ContestDashboard />} />
-              <Route path="/contest/contest-management" element={<ContestManagement />} />
-              <Route path="/contest/create-contest-form" element={<CreateContestForm />} />
-              <Route path="/contest/submissions-management" element={<SubmissionsManagement />} />
-              <Route path="/contest/votes" element={<Votes />} />
-              <Route path="/contest/reports" element={<Report />} />
-              <Route path="/contest/view" element={<ContestDetails />} />
-
-
-
-
-
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </div>
-    
+      <LayoutWrapper>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/users" element={<UserList />} />
+          <Route path="/usersProfile" element={<UserProfile />} />
+          <Route path="/dating" element={<Dating />} />
+          <Route path="/not-for-dating" element={<NotDating />} />
+          <Route path="/common-users" element={<CommonUsers />} />
+          <Route path="/manage-feed" element={<ManageFeed />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/admin-profile" element={<AdminProfile />} />
+          <Route path="/notification" element={<Notification />} />
+          <Route path="/create-contest" element={<ContestDashboard />} />
+          <Route path="/contest/contest-management" element={<ContestManagement />} />
+          <Route path="/contest/create-contest-form" element={<CreateContestForm />} />
+          <Route path="/contest/submissions-management" element={<SubmissionsManagement />} />
+          <Route path="/contest/votes" element={<Votes />} />
+          <Route path="/contest/reports" element={<Report />} />
+          <Route path="/contest/view" element={<ContestDetails />} />
+        </Routes>
+      </LayoutWrapper>
   );
 }
 
