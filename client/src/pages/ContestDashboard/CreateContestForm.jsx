@@ -19,6 +19,7 @@ export default function CreateContestForm({ open, onClose, formData, setFormData
     }));
   };
 
+  
   return (
     <Modal open={open} onClose={onClose}>
       <Box

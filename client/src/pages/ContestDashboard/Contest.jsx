@@ -42,7 +42,7 @@ const ContestDashboard = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-4 ">
+    <div className="p-4  pb-36">
       <h1 className="text-2xl font-bold mb-4 text-gradient bg-clip-text text-transparent bg-gradient-to-tr from-[#FA457E] to-[#7B49FF]">
         Contest Dashboard
       </h1>
@@ -109,17 +109,17 @@ const ContestDashboard = () => {
 
 
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-5">
-        <button onClick={() => navigate("/contest/submissions-management")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 rounded-lg hover:shadow-md">
+      <div className="fixed bottom-12 min-w-[77vw] bg-blue-100 shadow-md border-t border-gray-200 z-50 p-3 flex flex-wrap gap-4 mx-4">
+        <button onClick={() => navigate("/contest/submissions-management")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 px-3 rounded-lg hover:shadow-md">
           Submissions Management
         </button>
-        <button onClick={() => navigate("/contest/votes")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 rounded-lg hover:shadow-md">
+        <button onClick={() => navigate("/contest/votes")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 px-3  rounded-lg hover:shadow-md">
           Votes
         </button>
-        <button onClick={() => navigate("/contest/reports")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 rounded-lg hover:shadow-md">
+        <button onClick={() => navigate("/contest/reports")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 px-3  rounded-lg hover:shadow-md">
           Reports
         </button>
-        <button onClick={() => navigate("/contest/contest-management")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 rounded-lg hover:shadow-md">
+        <button onClick={() => navigate("/contest/contest-management")} className="bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white py-2 px-3  rounded-lg hover:shadow-md">
           Manage Contests
         </button>
       </div>

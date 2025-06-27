@@ -30,7 +30,7 @@ const AdminProfile = () => {
 
       <div className="flex flex-col lg:flex-row gap-10 items-stretch">
 
-        {/* Profile Summary */}
+       
         <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col items-center w-full lg:w-1/3 h-full">
           <img
             src={profile}
@@ -41,7 +41,7 @@ const AdminProfile = () => {
           <p className="text-sm text-gray-600 mt-1">{adminData.role}</p>
         </div>
 
-        {/* Profile Details */}
+      
         <div className="w-full lg:w-1/2 h-full">
           <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
             <div className="flex justify-between items-center mb-4">
@@ -126,7 +126,7 @@ const AdminProfile = () => {
               </div>
             </div>
 
-            {/* Save/Cancel Buttons */}
+           
             {editing && (
               <div className="mt-6 flex gap-4">
                 <button

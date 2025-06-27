@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import TableLayout from "../../components/common/TableLayout";
-import ContestFormModal from "./CreateContestForm"; 
+import ContestFormModal from "./CreateContestForm";
+import { useNavigate } from "react-router-dom";
 
 const contests = [
   {
@@ -53,21 +54,7 @@ const getStatusBadge = (status) => {
   }
 };
 
-const renderRow = (contest, idx) => (
-  <tr key={contest.id} className="border-b hover:bg-gray-50">
-    <td className="py-3 px-4 whitespace-nowrap">{idx + 1}</td>
-    <td className="py-3 px-4 font-medium whitespace-nowrap">{contest.title}</td>
-    <td className="py-3 px-4 whitespace-nowrap">{getStatusBadge(contest.status)}</td>
-    <td className="py-3 px-4 whitespace-nowrap">{contest.startDate}</td>
-    <td className="py-3 px-4 whitespace-nowrap">{contest.endDate}</td>
-    <td className="py-3 px-4 whitespace-nowrap">{contest.totalEntries}</td>
-    <td className="py-3 px-4 space-x-3 whitespace-nowrap">
-      <button className="text-blue-600 hover:underline">View</button>
-      <button className="text-green-600 hover:underline">Edit</button>
-      <button className="text-red-600 hover:underline">Delete</button>
-    </td>
-  </tr>
-);
+
 
 export default function ContestManagement() {
   const [formOpen, setFormOpen] = useState(false);
@@ -98,6 +85,24 @@ export default function ContestManagement() {
     console.log("Submitted:", formData);
     setFormOpen(false);
   };
+  const navigate = useNavigate();
+
+  const renderRow = (contest, idx) => (
+  <tr key={contest.id} className="border-b hover:bg-gray-50">
+    <td className="py-3 px-4 whitespace-nowrap">{idx + 1}</td>
+    <td className="py-3 px-4 font-medium whitespace-nowrap">{contest.title}</td>
+    <td className="py-3 px-4 whitespace-nowrap">{getStatusBadge(contest.status)}</td>
+    <td className="py-3 px-4 whitespace-nowrap">{contest.startDate}</td>
+    <td className="py-3 px-4 whitespace-nowrap">{contest.endDate}</td>
+    <td className="py-3 px-4 whitespace-nowrap">{contest.totalEntries}</td>
+    <td className="py-3 px-4 space-x-3 whitespace-nowrap">
+      <button onClick={() => navigate("/contest/view")}  className="text-blue-600 hover:underline">View</button>
+      <button className="text-green-600 hover:underline">Edit</button>
+      <button className="text-red-600 hover:underline">Delete</button>
+    </td>
+  </tr>
+);
+
 
   return (
     <div className="px-6 py-2">
@@ -106,11 +111,11 @@ export default function ContestManagement() {
           Contest Management
         </h1> */}
         <button
-  onClick={() => navigate(-1)}
-  className="mb-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-400 hover:bg-purple-700 rounded-lg shadow-sm transition duration-150"
->
-  ← Back
-</button>
+          onClick={() => navigate(-1)}
+          className="mb-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-400 hover:bg-purple-700 rounded-lg shadow-sm transition duration-150"
+        >
+          ← Back
+        </button>
         <button
           onClick={() => setFormOpen(true)}
           className=" mb-4 px-4 py-2 bg-gradient-to-r from-[#FA457E] to-[#7B49FF] text-white px-4 py-2 rounded-lg hover:shadow-md"

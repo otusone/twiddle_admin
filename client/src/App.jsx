@@ -21,6 +21,8 @@ import SubmissionsManagement from './pages/ContestDashboard/SubmissionsManagemen
 import Votes from './pages/ContestDashboard/Votes';
 import Report from './pages/ContestDashboard/Report';
 import  Notification from './pages/Notification';
+import  ContestDetails from './pages/ContestDashboard/ContestDetails';
+
 
 
 
@@ -53,6 +55,8 @@ function App() {
               <Route path="/contest/submissions-management" element={<SubmissionsManagement />} />
               <Route path="/contest/votes" element={<Votes />} />
               <Route path="/contest/reports" element={<Report />} />
+              <Route path="/contest/view" element={<ContestDetails />} />
+
 
 
 
