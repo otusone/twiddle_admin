@@ -1,53 +1,33 @@
-const express=require('express')
+const express = require('express')
 const session = require('express-session');
-const dotenv=require("dotenv")
-const cors=require("cors")
+const dotenv = require("dotenv")
+const cors = require("cors")
 const cron = require('node-cron');
 const http = require('http');
 const path = require('path');
 const index = require('./routers/index');
 dotenv.config();
 const app = express()
+const cookieParser = require('cookie-parser');
+const {setupSocket} = require('./socket');
 const db = require('./config/db');
-const { Server } = require("socket.io");
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" },
-});
 
-global._io = io;
-
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
-  socket.on("join_room", (contactId) => {
-    socket.join(contactId);
-    console.log(`Socket ${socket.id} joined room: ${contactId}`);
-  });
-
-  socket.on("leave_room", (contactId) => {
-    socket.leave(contactId);
-    console.log(`Socket ${socket.id} left room: ${contactId}`);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
-});
+app.use(cookieParser());
+app.set('trust proxy', true);
+require('./services/cleanupInactiveUsers');
 
 app.use(cors())
 
 app.use(
-    session({
-      secret: 'WSDMKDWK274YXMIWJRW83MMIQMNUR32MUEHEJ',
-      resave: false,
-      saveUninitialized: false,
-      
-    })
-  );
-app.use(express.json());
+  session({
+    secret: 'WSDMKDWK274YXMIWJRW83MMIQMNUR32MUEHEJ',
+    resave: false,
+    saveUninitialized: false,
 
-// app.use('/wa-link', publicRedirectRoute);
+  })
+);
+app.use(express.json());
 
 app.use('/api/v1', index);
 
@@ -58,7 +38,8 @@ app.use('/api/v1', index);
 //   res.sendFile(path.join(__dirname,'./client','dist',"index.html"));
 // });
 
-const PORT=8000 ||8000
-server.listen(PORT,()=>{
-     console.log(`server is running at port no ${PORT}`);
- })
+setupSocket(server);
+const PORT = 8000 || 8000
+server.listen(PORT, () => {
+  console.log(`server is running at port no ${PORT}`);
+})

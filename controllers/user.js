@@ -1,180 +1,192 @@
 const User = require('../models/user');
-const OTP = require('../models/Otp');
-const jwt = require('jsonwebtoken');
 const Session = require('../models/session');
-const { generateTokens, hashToken } = require('../utils/tokenGenerator');
-const useragent = require('useragent');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
+const SwipeLog = require('../models/swipeLog');
+const { sendSocketNotification } = require('../utils/sendNotification');
+const SWIPE_LIMIT_FREE = 50;
 
-exports.sendOtp = async (req, res) => {
-  try {
-    const { mobile } = req.body;
-    if (!mobile) return res.status(400).json({ message: 'Mobile number is required' });
+exports.getProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
 
-    await OTP.findOneAndUpdate(
-      { mobile },
-      { otp: '1234' },
-      { upsert: true, new: true }
-    );
+        const user = await User.findById(userId).select('-password -twoFASecret -loginHistory');
+        if (!user) return sendError(res, {}, 'User not found', 404);
 
-    res.json({ message: 'OTP sent to mobile (1234)' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to send OTP' });
-  }
-};
-
-exports.verifyOtp = async (req, res) => {
-  try {
-    const { mobile, otp } = req.body;
-    if (!mobile || !otp) return res.status(400).json({ message: 'Mobile and OTP required' });
-    if (otp !== '1234') return res.status(400).json({ message: 'Invalid OTP' });
-
-    let user = await User.findOne({ mobile });
-    if (!user) user = await User.create({ mobile });
-
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
-
-    res.json({
-      accessToken,
-      message: 'OTP verified successfully',
-      userExists: !!user.fullName,
-      user,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'OTP verification failed' });
-  }
-};
-
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+        return sendSuccess(res, { user }, 'User profile fetched successfully');
+    } catch (error) {
+        console.error('Get Profile Error:', error);
+        return sendError(res, error, 'Failed to fetch profile');
     }
+};
 
-    const agent = useragent.parse(req.headers['user-agent']);
-    const deviceInfo = {
-      ip: req.ip,
-      deviceName: agent.device.toString(),
-      os: agent.os.toString(),
-      browser: agent.toAgent(),
-    };
+exports.handleSwipe = async (req, res) => {
+    try {
+        const { targetUserId, direction } = req.body;
+        console.log("targetUserId",targetUserId);
+        console.log("direction",direction);
+        const { _id: userId, isPremium } = req.user;
 
-    const sessions = await Session.find({ userId: user._id, isValid: true });
-    if (sessions.length >= 3) {
-      return res.status(403).json({ message: 'Maximum device limit reached. Logout from other devices.' });
+        const swipeCount = await SwipeLog.countDocuments({
+            userId,
+            createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+        });
+
+        if (!isPremium && swipeCount >= SWIPE_LIMIT_FREE) {
+            return sendError(res, {}, "Daily swipe limit reached.", 429);
+        }
+
+        await SwipeLog.create({ userId });
+
+        if (!['left', 'right'].includes(direction)) {
+            return sendError(res, {}, 'Invalid swipe direction', 400);
+        }
+
+        if (userId.toString() === targetUserId) {
+            return sendError(res, {}, "You can't swipe on your own profile.", 400);
+        }
+
+        const [user, targetUser] = await Promise.all([
+            User.findById(userId),
+            User.findById(targetUserId)
+        ]);
+
+        if (!user || !targetUser) {
+            return sendError(res, {}, 'User not found', 404);
+        }
+
+        const alreadySwipedOrMatched = user.rightSwipes.includes(targetUserId) ||
+            user.leftSwipes.includes(targetUserId) ||
+            user.matches.some(match => match.user.toString() === targetUserId);
+
+        if (alreadySwipedOrMatched) {
+            return sendError(res, {}, 'Already swiped or matched with this user', 409);
+        }
+
+        if (direction === 'left') {
+            user.leftSwipes.push(targetUserId);
+            user.leftSwipesCount++;
+            await user.save();
+            return sendSuccess(res, {}, 'Left swipe recorded');
+        }
+
+        // Right swipe logic
+        user.rightSwipes.push(targetUserId);
+        user.rightSwipesCount++;
+        targetUser.profileLikesCount++;
+
+        const isMutual = targetUser.rightSwipes.includes(userId);
+        if (isMutual) {
+            const matchedAt = new Date();
+            user.matches.push({ user: targetUserId, matchedAt });
+            user.matchesCount++;
+            targetUser.matches.push({ user: userId, matchedAt });
+            targetUser.matchesCount++;
+
+            await Chat.create({
+                participants: [userId, targetUserId],
+                messages: [],
+                lastMessage: "Congratulations! A match is made. 🎉"
+            });
+
+            const notifications = [
+                { userId, senderId: targetUserId, type: 'match', message: "You matched with someone!" },
+                { userId: targetUserId, senderId: userId, type: 'match', message: "You matched with someone!" }
+            ];
+            await Notification.insertMany(notifications);
+
+            for (let n of notifications) {
+                sendSocketNotification(n.userId, 'match_notification', {
+                    matchedWith: n.senderId,
+                    message: n.message
+                });
+                console.log("notification send")
+            }
+        }
+
+        await user.save();
+        await targetUser.save();
+
+        return sendSuccess(res, {}, isMutual ? "It's a match! You can now chat." : 'Right swipe recorded');
+    } catch (err) {
+        console.error(err);
+        return sendError(res, err, err.message || 'Internal server error');
     }
-
-    const { accessToken, refreshToken } = generateTokens(user);
-    const hashedRefreshToken = hashToken(refreshToken);
-
-    await Session.create({
-      userId: user._id,
-      refreshTokenHash: hashedRefreshToken,
-      ...deviceInfo,
-    });
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
-
-    res.json({ accessToken, message: 'Login successful' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Login failed' });
-  }
 };
 
-exports.refreshToken = async (req, res) => {
-  try {
-    const token = req.cookies.refreshToken;
-    if (!token) return res.status(401).json({ message: 'No token provided' });
+exports.getMatches = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+            .populate('matches.user', 'fullName profilePhotos gender');
 
-    const hashedToken = hashToken(token);
-    const session = await Session.findOne({ refreshTokenHash: hashedToken, isValid: true });
-    if (!session) return res.status(403).json({ message: 'Invalid session' });
-
-    const user = await User.findById(session.userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    session.isValid = false;
-    await session.save();
-
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
-    const newHash = hashToken(newRefreshToken);
-
-    await Session.create({
-      userId: user._id,
-      refreshTokenHash: newHash,
-      ip: req.ip,
-      deviceName: session.deviceName,
-      os: session.os,
-      browser: session.browser,
-    });
-
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
-
-    res.json({ accessToken });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to refresh token' });
-  }
+        return sendSuccess(res, { matches: user.matches }, 'Matched users retrieved');
+    } catch (err) {
+        console.error(err);
+        return sendError(res, err, 'Failed to get matched users');
+    }
 };
 
-exports.logout = async (req, res) => {
-  try {
-    const token = req.cookies.refreshToken;
-    if (!token) return res.status(200).json({ message: 'Logged out' });
+exports.getRightSwipes = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+            .populate('rightSwipes', 'fullName profilePhotos gender');
 
-    const hashedToken = hashToken(token);
-    await Session.findOneAndUpdate(
-      { refreshTokenHash: hashedToken },
-      { isValid: false }
-    );
-
-    res.clearCookie('refreshToken');
-    res.json({ message: 'Logged out successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Logout failed' });
-  }
+        return sendSuccess(res, { rightSwipes: user.rightSwipes }, 'Right swipes retrieved');
+    } catch (err) {
+        console.error(err);
+        return sendError(res, err, 'Failed to get right swipes');
+    }
 };
 
-exports.getActiveSessions = async (req, res) => {
-  try {
-    const sessions = await Session.find({ userId: req.user.id, isValid: true }).select('-refreshTokenHash');
-    res.json(sessions);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch active sessions' });
-  }
+exports.getSwipeHistory = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const user = await User.findById(userId)
+            .populate('rightSwipes', 'fullName profilePhotos')
+            .populate('leftSwipes', 'fullName profilePhotos')
+            .populate('matches.user', 'fullName profilePhotos');
+
+        if (!user) {
+            return sendError(res, {}, 'User not found', 404);
+        }
+
+        return sendSuccess(res, {
+            rightSwipes: user.rightSwipes,
+            leftSwipes: user.leftSwipes,
+            matches: user.matches,
+        }, 'Swipe history fetched successfully');
+    } catch (err) {
+        console.error(err);
+        return sendError(res, err, 'Failed to fetch swipe history');
+    }
 };
 
-exports.logoutFromDevice = async (req, res) => {
-  try {
-    const { sessionId } = req.params;
-    await Session.findOneAndUpdate({ _id: sessionId, userId: req.user.id }, { isValid: false });
-    res.json({ message: 'Logged out from device' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to logout from device' });
-  }
+exports.unmatchUser = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { targetUserId } = req.body;
+
+        const [user, targetUser] = await Promise.all([
+            User.findById(userId),
+            User.findById(targetUserId)
+        ]);
+
+        if (!user || !targetUser) {
+            return sendError(res, {}, 'User not found', 404);
+        }
+
+        user.matches = user.matches.filter(m => m.user.toString() !== targetUserId);
+        targetUser.matches = targetUser.matches.filter(m => m.user.toString() !== userId);
+
+        user.matchesCount = Math.max(user.matchesCount - 1, 0);
+        targetUser.matchesCount = Math.max(targetUser.matchesCount - 1, 0);
+
+        await user.save();
+        await targetUser.save();
+
+        return sendSuccess(res, {}, 'Unmatched successfully');
+    } catch (err) {
+        console.error(err);
+        return sendError(res, err, 'Failed to unmatch user');
+    }
 };
