@@ -18,7 +18,7 @@ router.post('/verify-login-otp', authController.verifyLoginOtp);
 
 router.post('/login-with-email', authController.login);
 
-router.patch("/complete-profile",userAuth, upload.array('profilePhotos', 5),parseJsonArrays(['preference', 'interest', 'discover']), authController.completeProfile)
+router.patch("/complete-profile",userAuth, upload.array('profilePhotos', 5),parseJsonArrays(['preference', 'interest', 'discover','coordinates']), authController.completeProfile)
 
 router.post("/set-pasword",userAuth,authController.setupPassword);
 router.post("/reset-password",userAuth,authController.resetPassword);

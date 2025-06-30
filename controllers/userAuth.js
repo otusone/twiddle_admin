@@ -60,7 +60,8 @@ exports.completeProfile = async (req, res) => {
     const { _id: userId } = req.user;
     const {
       fullName, dateOfBirth, gender, email,
-      purpose, preference, interest, discover, maxDistancePreference
+      purpose, preference, interest, discover, maxDistancePreference,
+      coordinates
     } = req.body;
 
     const user = await User.findById(userId);
@@ -79,10 +80,19 @@ exports.completeProfile = async (req, res) => {
       }
     }
 
+    let parsedCoordinates = [0, 0];
+    if (coordinates && Array.isArray(coordinates) && coordinates.length === 2 && !isNaN(coordinates[0]) && !isNaN(coordinates[1])
+    ) {
+      parsedCoordinates = coordinates.map(Number);
+    }
     Object.assign(user, {
       fullName, dateOfBirth, gender, email, maxDistancePreference,
       purpose, preference, interest, discover, profilePhotos: profileImages,
-      isProfileDetailsFilled: true
+      isProfileDetailsFilled: true,
+      location: {
+        type: 'Point',
+        coordinates:parsedCoordinates
+      }
     });
 
 
