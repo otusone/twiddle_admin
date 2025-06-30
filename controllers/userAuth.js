@@ -67,6 +67,10 @@ exports.completeProfile = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return sendError(res, {}, 'User not found', 404);
 
+    if (user.isProfileDetailsFilled) {
+      return sendError(res, {}, 'Profile Details already filled', 404);
+    }
+
     let profileImages = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
@@ -91,7 +95,7 @@ exports.completeProfile = async (req, res) => {
       isProfileDetailsFilled: true,
       location: {
         type: 'Point',
-        coordinates:parsedCoordinates
+        coordinates: parsedCoordinates
       }
     });
 
