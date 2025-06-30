@@ -27,9 +27,10 @@ const userSchema = new mongoose.Schema({
     },
     bio: { type: String, maxlength: 300 },
     location: {
-        type: { type: String, enum: ['Point'], default: 'Point' },
-        coordinates: { type: [Number], default: [0, 0], index: '2dsphere' },
+        type: { type: String, enum: ['Point'], default: 'Point', },
+        coordinates: { type: [Number], default: [0, 0], }
     },
+
     showDistanceInProfile: { type: Boolean, default: true },
     languages: [{ type: String }],
     relationshipStatus: { type: String, enum: ['single', 'divorced', 'widowed', 'complicated'], default: 'single' },
@@ -200,5 +201,7 @@ userSchema.methods.createSession = async function (refreshToken, req) {
 userSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
+
+userSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('User', userSchema);

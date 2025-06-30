@@ -1,9 +1,10 @@
+const mongoose = require('mongoose');
 const User = require('../models/user');
 const Session = require('../models/session');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
 const SwipeLog = require('../models/swipeLog');
 const { sendSocketNotification } = require('../utils/sendNotification');
-const {mapPreferencesToGenders}=require("../services/mapPreferencesToGenders")
+const { mapPreferencesToGenders } = require("../services/mapPreferencesToGenders")
 const SWIPE_LIMIT_FREE = 50;
 
 exports.getProfile = async (req, res) => {
@@ -23,8 +24,8 @@ exports.getProfile = async (req, res) => {
 exports.handleSwipe = async (req, res) => {
     try {
         const { targetUserId, direction } = req.body;
-        console.log("targetUserId",targetUserId);
-        console.log("direction",direction);
+        console.log("targetUserId", targetUserId);
+        console.log("direction", direction);
         const { _id: userId, isPremium } = req.user;
 
         const swipeCount = await SwipeLog.countDocuments({
@@ -192,9 +193,62 @@ exports.unmatchUser = async (req, res) => {
     }
 };
 
+exports.getUsersForSwipeWithoutDistanceCalc = async (req, res) => {
+    try {
+        const { _id: userId } = req.user;
+        const currentUser = await User.findById(userId);
+
+        if (!currentUser) {
+            return sendError(res, {}, 'User not found', 404);
+        }
+
+        const preferences = currentUser.preference || ['anyone'];
+        const excludedIds = [
+            ...currentUser.rightSwipes,
+            ...currentUser.leftSwipes,
+            ...currentUser.matches.map(m => m.user.toString()),
+            userId.toString()
+        ];
+
+        const genderFilter = preferences.includes('anyone')
+            ? { gender: { $exists: true } }
+            : { gender: { $in: mapPreferencesToGenders(preferences) } };
+
+        const locationFilter = currentUser.location?.coordinates?.length === 2
+            ? {
+                location: {
+                    $near: {
+                        $geometry: {
+                            type: "Point",
+                            coordinates: currentUser.location.coordinates
+                        },
+                        $maxDistance: currentUser.maxDistancePreference * 1000 // in meters
+                    }
+                }
+            }
+            : {};
+
+        const users = await User.find({
+            _id: { $nin: excludedIds },
+            accountStatus: 'active',
+            isProfileDetailsFilled: true,
+            ...genderFilter,
+            ...locationFilter
+        })
+            .limit(50)
+            .select('-password -loginHistory -is2FAEnabled -boostsRemaining -isPremium -isEmailVerified -isMobileVerified -isProfileDetailsFilled -matchesCount -leftSwipesCount -rightSwipesCount -leftSwipes -rightSwipes -matches -maxDistancePreference ');
+
+        return sendSuccess(res, users, 'Users fetched for swiping');
+    } catch (error) {
+        console.error('getUsersForSwipe error:', error);
+        return sendError(res, error, 'Failed to get users for swiping');
+    }
+};
+
+
 exports.getUsersForSwipe = async (req, res) => {
   try {
-    const {_id:userId} = req.user;
+    const { _id: userId } = req.user;
     const currentUser = await User.findById(userId);
 
     if (!currentUser) {
@@ -210,38 +264,59 @@ exports.getUsersForSwipe = async (req, res) => {
     ];
 
     const genderFilter = preferences.includes('anyone')
-      ? { gender: { $exists: true } }
+      ? {}
       : { gender: { $in: mapPreferencesToGenders(preferences) } };
 
-    const locationFilter = currentUser.location?.coordinates?.length === 2
-      ? {
-          location: {
-            $near: {
-              $geometry: {
-                type: "Point",
-                coordinates: currentUser.location.coordinates
-              },
-              $maxDistance: currentUser.maxDistancePreference * 1000 // in meters
-            }
+    const maxDistance = (currentUser.maxDistancePreference || 15) * 1000; // meters
+    const userCoordinates = currentUser.location?.coordinates || [0, 0];
+
+    console.log("genderFilter",genderFilter)
+
+    const users = await User.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: "Point",
+            coordinates: userCoordinates
+          },
+          distanceField: "distance", // calculated distance in meters
+          spherical: true,
+          maxDistance: maxDistance,
+          query: {
+            _id: { $nin: excludedIds.map(id => new mongoose.Types.ObjectId(id)) },
+            accountStatus: 'active',
+            isProfileDetailsFilled: true,
+            ...genderFilter
           }
         }
-      : {};
+      },
+      {
+        $limit: 50
+      },
+      {
+        $project: {
+          password: 0,
+          loginHistory: 0,
+          is2FAEnabled: 0,
+          boostsRemaining: 0,
+          isPremium: 0,
+          isEmailVerified: 0,
+          isMobileVerified: 0,
+          isProfileDetailsFilled: 0,
+          matchesCount: 0,
+          leftSwipesCount: 0,
+          rightSwipesCount: 0,
+          leftSwipes: 0,
+          rightSwipes: 0,
+          matches: 0,
+          maxDistancePreference: 0
+        }
+      }
+    ]);
 
-    const users = await User.find({
-      _id: { $nin: excludedIds },
-      accountStatus: 'active',
-      isProfileComplete: true,
-      ...genderFilter,
-      ...locationFilter
-    })
-      .limit(50)
-      .select('-password -loginHistory');
-
-    return sendSuccess(res, users, 'Users fetched for swiping');
+    return sendSuccess(res, users, 'Users fetched for swiping with distance');
   } catch (error) {
     console.error('getUsersForSwipe error:', error);
-    return sendError(res, error, 'Failed to get users for swiping');
+    return sendError(res, error,  error.message || 'Failed to get users for swiping');
   }
 };
-
-
