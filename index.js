@@ -31,7 +31,6 @@ app.use(express.json());
 
 app.use('/api/v1', index);
 
-
 const buildPath = path.join(__dirname, './client','dist')
 app.use(express.static(buildPath))
 app.get('/*', (req, res) => {
