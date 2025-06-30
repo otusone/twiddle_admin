@@ -5,17 +5,17 @@ const cors = require("cors")
 const cron = require('node-cron');
 const http = require('http');
 const path = require('path');
-const index = require('../routers/index');
+const index = require('./routers/index');
 dotenv.config();
 const app = express()
 const cookieParser = require('cookie-parser');
-const {setupSocket} = require('../socket');
-const db = require('../config/db');
+const {setupSocket} = require('./socket');
+const db = require('./config/db');
 const server = http.createServer(app);
 
 app.use(cookieParser());
 app.set('trust proxy', true);
-require('../services/cleanupInactiveUsers');
+require('./services/cleanupInactiveUsers');
 
 app.use(cors())
 
