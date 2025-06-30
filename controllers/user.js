@@ -3,6 +3,7 @@ const Session = require('../models/session');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
 const SwipeLog = require('../models/swipeLog');
 const { sendSocketNotification } = require('../utils/sendNotification');
+const {mapPreferencesToGenders}=require("../services/mapPreferencesToGenders")
 const SWIPE_LIMIT_FREE = 50;
 
 exports.getProfile = async (req, res) => {
@@ -190,3 +191,57 @@ exports.unmatchUser = async (req, res) => {
         return sendError(res, err, 'Failed to unmatch user');
     }
 };
+
+exports.getUsersForSwipe = async (req, res) => {
+  try {
+    const {_id:userId} = req.user;
+    const currentUser = await User.findById(userId);
+
+    if (!currentUser) {
+      return sendError(res, {}, 'User not found', 404);
+    }
+
+    const preferences = currentUser.preference || ['anyone'];
+    const excludedIds = [
+      ...currentUser.rightSwipes,
+      ...currentUser.leftSwipes,
+      ...currentUser.matches.map(m => m.user.toString()),
+      userId.toString()
+    ];
+
+    const genderFilter = preferences.includes('anyone')
+      ? { gender: { $exists: true } }
+      : { gender: { $in: mapPreferencesToGenders(preferences) } };
+
+    const locationFilter = currentUser.location?.coordinates?.length === 2
+      ? {
+          location: {
+            $near: {
+              $geometry: {
+                type: "Point",
+                coordinates: currentUser.location.coordinates
+              },
+              $maxDistance: currentUser.maxDistancePreference * 1000 // in meters
+            }
+          }
+        }
+      : {};
+
+    const users = await User.find({
+      _id: { $nin: excludedIds },
+      accountStatus: 'active',
+      isProfileComplete: true,
+      ...genderFilter,
+      ...locationFilter
+    })
+      .limit(50)
+      .select('-password -loginHistory');
+
+    return sendSuccess(res, users, 'Users fetched for swiping');
+  } catch (error) {
+    console.error('getUsersForSwipe error:', error);
+    return sendError(res, error, 'Failed to get users for swiping');
+  }
+};
+
+

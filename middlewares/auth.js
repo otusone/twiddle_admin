@@ -1,21 +1,20 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-
+const { sendError } = require("../utils/responseHandler"); 
 const userAuth = async (req, res, next) => {
   try {
     const authHeader = req.header("Authorization");
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Missing or invalid authorization header." });
+      return sendError(res, {}, "Missing or invalid authorization header", 401);
     }
 
     const token = authHeader.replace("Bearer ", "").trim();
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
 
+    const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(401).json({ error: "User not found." });
+      return sendError(res, {}, "User not found", 401);
     }
 
     req.token = token;
@@ -23,10 +22,10 @@ const userAuth = async (req, res, next) => {
     next();
   } catch (err) {
     console.error("Auth error:", err.message);
-    return res.status(401).json({ error: "Please authenticate." });
+    return sendError(res, err, "Please authenticate", 401);
   }
 };
 
 module.exports = {
-  userAuth
+  userAuth,
 };
