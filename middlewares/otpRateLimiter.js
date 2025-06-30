@@ -1,11 +1,15 @@
 const OtpRateLimit = require('../models/otpRateLimit');
+const { sendError } = require('../utils/responseHandler'); 
 
 const MAX_ATTEMPTS = 3;
 const WINDOW_MINUTES = 10;
 
-const otpRateLimiter=async(req, res, next)=> {
+const otpRateLimiter = async (req, res, next) => {
   const { mobile } = req.body;
-  if (!mobile) return res.status(400).json({ message: 'Mobile number required' });
+
+  if (!mobile) {
+    return sendError(res, {}, 'Mobile number is required', 400);
+  }
 
   try {
     const now = new Date();
@@ -19,12 +23,15 @@ const otpRateLimiter=async(req, res, next)=> {
           const timeLeft = Math.ceil(
             (record.firstRequestAt.getTime() + WINDOW_MINUTES * 60000 - now.getTime()) / 60000
           );
-          return res.status(429).json({
-            message: `Too many OTP requests. Try again in ${timeLeft} minute(s).`,
-          });
+          return sendError(
+            res,
+            {},
+            `Too many OTP requests. Try again in ${timeLeft} minute(s).`,
+            429
+          );
         }
 
-        // Within window, increment attempts
+        // Still within window, increment attempts
         record.attempts += 1;
       } else {
         // Outside window, reset
@@ -38,13 +45,12 @@ const otpRateLimiter=async(req, res, next)=> {
     }
 
     next();
-  } catch (err) {
-    console.error('OTP Rate Limiter Error:', err);
-    res.status(500).json({ message: 'Internal server error' });
+  } catch (error) {
+    console.error('OTP Rate Limiter Error:', error);
+    return sendError(res, error, 'Internal server error', 500);
   }
 };
 
-
-module.exports={
-    otpRateLimiter
-}
+module.exports = {
+  otpRateLimiter,
+};

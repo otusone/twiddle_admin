@@ -10,6 +10,6 @@ exports.sendError = (res, error = {}, message = 'Something went wrong', statusCo
   return res.status(statusCode).json({
     success: false,
     message,
-    error,
+    data:error,
   });
 };
