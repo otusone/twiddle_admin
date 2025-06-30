@@ -32,11 +32,11 @@ app.use(express.json());
 app.use('/api/v1', index);
 
 
-// const buildPath = path.join(__dirname, './client','dist')
-// app.use(express.static(buildPath))
-// app.get('/*', (req, res) => {
-//   res.sendFile(path.join(__dirname,'./client','dist',"index.html"));
-// });
+const buildPath = path.join(__dirname, './client','dist')
+app.use(express.static(buildPath))
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname,'./client','dist',"index.html"));
+});
 
 setupSocket(server);
 const PORT = 8000 || 8000
