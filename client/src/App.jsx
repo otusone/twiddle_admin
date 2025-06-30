@@ -71,6 +71,7 @@ function App() {
           <Route path="/contest/votes" element={<Votes />} />
           <Route path="/contest/reports" element={<Report />} />
           <Route path="/contest/view" element={<ContestDetails />} />
+          
         </Routes>
       </LayoutWrapper>
   );

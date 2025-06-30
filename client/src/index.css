@@ -62,7 +62,6 @@ html, body, #root {
     page-break-inside: avoid !important;
   }
 
-  /* Optional: Avoid margin and border issues */
   body {
     margin: 0 !important;
   }

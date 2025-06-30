@@ -137,10 +137,18 @@ export default function Sidebar() {
                         {!collapsed && <span>Help</span>}
                     </li>
 
-                    <li className="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 rounded-lg px-4 py-2 cursor-pointer">
+                    
+                    <li
+                        onClick={() => navigate("/")}
+                        className={`flex items-center space-x-3 px-4 py-2 rounded-lg cursor-pointer transition-colors duration-200 
+                        ${location.pathname === "/"
+                                ? "bg-blue-100 text-blue-800"
+                                : "text-gray-700 hover:bg-blue-50"}`}
+                    >
                         <FaSignOutAlt size={18} />
                         {!collapsed && <span>Logout</span>}
                     </li>
+
                 </ul>
 
                 {/* Notification */}
